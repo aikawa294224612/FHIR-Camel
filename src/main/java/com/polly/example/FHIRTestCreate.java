@@ -13,6 +13,9 @@ import org.hl7.fhir.r4.model.Patient;
 
 /* 實作FHIR創建資料(POST)，資料為寫死假資料 */
 public class FHIRTestCreate {
+	
+	static PrivateData privatedata = new PrivateData();
+	static String fhirserver = privatedata.fhirserverurl;
 
 	public static void main(String[] args) throws Exception{
 	
@@ -45,12 +48,12 @@ public class FHIRTestCreate {
 					}
 					
 				})
-				.marshal().fhirJson(true) 
-				.to("file:src/test?fhirtestdb");
-//				.to("fhir://create/resource?"
-//			    		+ "inBody=resource&"
-//			    		+ "fhirVersion=R4&"
-//			    		+ "serverUrl=https%3A%2F%2Fhapi.fhir.org%2FbaseR4");
+//				.marshal().fhirJson(true) 
+//				.to("file:src/test?fhirtestdb");
+				.to("fhir://create/resource?"
+			    		+ "inBody=resource&"
+			    		+ "fhirVersion=R4&"
+			    		+ "serverUrl="+fhirserver);
 			}
 		});	
 		

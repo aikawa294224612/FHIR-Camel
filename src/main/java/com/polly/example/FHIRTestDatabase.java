@@ -39,6 +39,7 @@ public class FHIRTestDatabase {
 	static String username = privatedata.username;
 	static String pw = privatedata.pw;
 	static String table = privatedata.table;
+	static String fhirserver = privatedata.fhirserverurl;
 
 	@SuppressWarnings("resource")
 	public static void main(String[] args) throws Exception {
@@ -114,12 +115,12 @@ public class FHIRTestDatabase {
 					}
 					
 				})
-				.marshal().fhirJson(true) 
-				.to("file:src/test?fileName=fhirformat")
-//				.to("fhir://create/resource?"
-//			    		+ "inBody=resource&"
-//			    		+ "fhirVersion=R4&"
-//			    		+ "serverUrl=https%3A%2F%2Fhapi.fhir.org%2FbaseR4")
+//				.marshal().fhirJson(true) 
+//				.to("file:src/test?fileName=fhirformat")
+				.to("fhir://create/resource?"
+			    		+ "inBody=resource&"
+			    		+ "fhirVersion=R4&"
+			    		+ "serverUrl="+fhirserver)
 		        .process(new Processor() {
 					public void process(Exchange exchange) throws Exception {						
 				        

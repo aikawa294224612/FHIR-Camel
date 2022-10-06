@@ -9,6 +9,9 @@ import org.hl7.fhir.r4.model.Patient;
 
 /* 實作FHIR讀取資料，以ID搜尋 */
 public class FHIRTestReadbyID {
+	
+	static PrivateData privatedata = new PrivateData();
+	static String fhirserver = privatedata.fhirserverurl;
 
 	public static void main(String[] args) throws Exception{
 		
@@ -20,7 +23,7 @@ public class FHIRTestReadbyID {
 					
 					from("timer:mytimer?repeatCount=1")
 					.to("fhir://read/resourceById?"
-							+ "serverUrl=https%3A%2F%2Fhapi.fhir.org%2FbaseR4%2F&"
+							+ "serverUrl="+ fhirserver +"&"
 							+ "resourceClass=Patient&"
 							+ "longId=6978066&"
 							+ "prettyPrint=true&"
