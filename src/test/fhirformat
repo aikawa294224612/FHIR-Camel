@@ -33,11 +33,35 @@
       "text": "陳小美"
     }
   ],
+  "telecom": [
+    {
+      "system": "phone",
+      "value": "0922888392",
+      "use": "mobile"
+    }
+  ],
   "gender": "female",
   "birthDate": "1996-06-17",
   "address": [
     {
       "text": "臺北市中山區中山北路3段22號"
+    }
+  ],
+  "contact": [
+    {
+      "name": {
+        "text": "許盈盈"
+      },
+      "telecom": [
+        {
+          "system": "phone",
+          "value": "0939999291",
+          "use": "mobile"
+        }
+      ],
+      "address": {
+        "text": "臺北市中山區中山北路3段22號"
+      }
     }
   ]
 }
