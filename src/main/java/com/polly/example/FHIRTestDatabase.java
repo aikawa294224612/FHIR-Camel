@@ -24,6 +24,7 @@ import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Identifier.IdentifierUse;
 import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.Patient.ContactComponent;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -82,6 +83,11 @@ public class FHIRTestDatabase {
 						String birth = jsonObj.get("Birthday").toString();
 						String address = jsonObj.get("Address").toString();
 						String tel = jsonObj.get("Tel").toString();
+						String marriage = jsonObj.get("Marriage").toString();
+						String contact_title = jsonObj.get("EmergencyContactTitle").toString();
+						String contact_name = jsonObj.get("EmergencyContactName").toString();
+						String contact_address = jsonObj.get("EmergencyContactAddress").toString();
+						String contact_tel = jsonObj.get("EmergencyContactTel").toString();
 						
 				        Patient patient = new Patient();
 				        List<Identifier> idens = new ArrayList<Identifier>();
@@ -108,7 +114,13 @@ public class FHIRTestDatabase {
 				        
 				        //聯絡(電話)
 				        List<ContactPoint> contacts = new ArrayList<ContactPoint>();
-				        contacts.add(setTel(tel));				        
+				        contacts.add(setTel(tel));	
+				        patient.setTelecom(contacts);
+				        
+				        //聯絡人資料
+				        List<ContactComponent> contactcomponents = new ArrayList<ContactComponent>();
+				        contactcomponents.add(setcontact(contact_name, contact_address, contact_tel));	
+				        patient.setContact(contactcomponents);
 				        
 				        exchange.getIn().setBody(patient);
 						
@@ -174,9 +186,9 @@ public class FHIRTestDatabase {
 	  }
 	  
 	  private static AdministrativeGender setGender(String gender){
-		  if(gender.equals("F")) {
+		  if(gender.equals("2")) {
 	        	return AdministrativeGender.FEMALE;
-	        }else if(gender.equals("M")) {
+	        }else if(gender.equals("1")) {
 	        	return AdministrativeGender.MALE;
 	        }else {
 	        	return AdministrativeGender.OTHER;
@@ -198,11 +210,31 @@ public class FHIRTestDatabase {
 	  }
 	  
 	  private static ContactPoint setTel(String tel){
-		  	ContactPoint con =new ContactPoint();
-		  	con.setUse(ContactPoint.ContactPointUse.MOBILE);	        
-		  	con.setSystem(ContactPoint.ContactPointSystem.PHONE);
-	        con.setValue(tel);
-	        return con;
+			ContactPoint con =new ContactPoint();
+			con.setUse(ContactPoint.ContactPointUse.MOBILE);	        
+			con.setSystem(ContactPoint.ContactPointSystem.PHONE);
+			con.setValue(tel);
+			return con;
+	  }
+	  
+	  private static ContactComponent setcontact(String name, String address, String tel){
+		    //聯絡人姓名
+		  	Patient.ContactComponent contact = new Patient.ContactComponent();
+		    HumanName humanname = new HumanName();
+	        humanname.setText(name);
+	        contact.setName(humanname);
+	        
+	        // 聯絡人電話
+	        List<ContactPoint> contacts = new ArrayList<ContactPoint>();
+	        contacts.add(setTel(tel));	
+	        contact.setTelecom(contacts);
+	        
+	       // 聯絡人地址
+	        Address addr = new Address();
+	        addr.setText(address);
+	        contact.setAddress(addr);	        
+	      
+	        return contact;
 	  }
 	  
 }
