@@ -32,21 +32,25 @@ import org.json.JSONObject;
 /* 實作FHIR創建資料(POST)，資料來自MSSQL，資料參考花*病患資料欄位(僅一筆)  */
 public class FHIRTestDatabase {
 	
-	static PrivateData privatedata = new PrivateData();
-	static String servername = privatedata.servername;
-	static String instancename = privatedata.instancename;
-	static String port = privatedata.port;
-	static String dbname = privatedata.dbname;
-	static String username = privatedata.username;
-	static String pw = privatedata.pw;
-	static String table = privatedata.table;
-	static String fhirserver = privatedata.fhirserverurl;
+	static PrivateData privateData = new PrivateData();
+	static String serverName = privateData.serverName;
+	static String instanceName = privateData.instanceName;
+	static String port = privateData.port;
+	static String dbname = privateData.dbname;
+	static String username = privateData.username;
+	static String pw = privateData.pw;
+	static String table = privateData.table;
+	static String fhirserver = privateData.fhirserverurl;
+	static String className = privateData.className;
+	
+	static FHIRData fhirdata = new FHIRData();
+	static CodeData code = new CodeData();
 
 	@SuppressWarnings("resource")
 	public static void main(String[] args) throws Exception {
 		
 
-		String dbURL = "jdbc:sqlserver://"+ servername +"\\"+ instancename +":"+ port +";"
+		String dbURL = "jdbc:sqlserver://"+ serverName +"\\"+ instanceName +":"+ port +";"
 	    		+ "encrypt=true;databaseName=" + dbname + ";"
 	    		+ "trustServerCertificate=true";
 		
@@ -152,7 +156,7 @@ public class FHIRTestDatabase {
 	
 	  private static DataSource setupDataSource(String connectURI) {
 	    BasicDataSource ds = new BasicDataSource();
-	    ds.setDriverClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+	    ds.setDriverClassName(className);
 	    ds.setUsername(username);
 	    ds.setPassword(pw);
 	    ds.setUrl(connectURI);
@@ -186,9 +190,9 @@ public class FHIRTestDatabase {
 	  }
 	  
 	  private static AdministrativeGender setGender(String gender){
-		  if(gender.equals("2")) {
+		  if(gender.equals(code.female)) {
 	        	return AdministrativeGender.FEMALE;
-	        }else if(gender.equals("1")) {
+	        }else if(gender.equals(code.male)) {
 	        	return AdministrativeGender.MALE;
 	        }else {
 	        	return AdministrativeGender.OTHER;

@@ -3,8 +3,6 @@ package com.polly.example;
 public class FHIRData {
 
 	String idenUrl = "http://terminology.hl7.org/CodeSystem/v2-0203";
-	String idenCode = "NI";
-	String recordCode = "MR";
 	String moiUrl = "http://www.moi.gov.tw/";
 	String tzuchiUrl = "https://hlm.tzuchi.com.tw/";
 	
