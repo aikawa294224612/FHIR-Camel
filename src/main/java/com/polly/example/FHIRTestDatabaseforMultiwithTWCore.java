@@ -286,63 +286,26 @@ public class FHIRTestDatabaseforMultiwithTWCore {
 	  private static List<Extension> setAddressExtensions(String section, String number, String village, 
 			  String neighborhood, String lane, String alley, String floor, String room){ 
 		    List<Extension> extens = new ArrayList<Extension>(); 
-		    //段
-		  	Extension extension_section = new Extension();
-		    StringType string_section = new StringType(section);
-		    extension_section.setUrl(fhirdata.sectionUrl);
-		    extension_section.setValue(string_section);
-		    extens.add(extension_section);
-		    
-		    //號
-		    Extension extension_number = new Extension();
-		    StringType string_number = new StringType(number);
-		    extension_number.setUrl(fhirdata.numberUrl);
-		    extension_number.setValue(string_number);
-		    extens.add(extension_number);
-		    
-		    //里
-		    Extension extension_vill = new Extension();
-		    StringType string_vill = new StringType(village);
-		    extension_vill.setUrl(fhirdata.villUrl);
-		    extension_vill.setValue(string_vill);
-		    extens.add(extension_vill);
-		    
-		    //鄰
-		    Extension extension_neighborhood = new Extension();
-		    StringType string_neighborhood = new StringType(neighborhood);
-		    extension_neighborhood.setUrl(fhirdata.neighUrl);
-		    extension_neighborhood.setValue(string_neighborhood);
-		    extens.add(extension_neighborhood);
-		    
-		    //巷
-		    Extension extension_lane = new Extension();
-		    StringType string_lane = new StringType(lane);
-		    extension_lane.setUrl(fhirdata.laneUrl);
-		    extension_lane.setValue(string_lane);
-		    extens.add(extension_lane);
-		    
-		    //弄
-		    Extension extension_alley = new Extension();
-		    StringType string_alley = new StringType(alley);
-		    extension_alley.setUrl(fhirdata.alleyUrl);
-		    extension_alley.setValue(string_alley);
-		    extens.add(extension_alley);
-	        
-		    //樓
-		    Extension extension_floor = new Extension();
-		    StringType string_floor = new StringType(floor);
-		    extension_floor.setUrl(fhirdata.floorUrl);
-		    extension_floor.setValue(string_floor);
-		    extens.add(extension_floor);
-		    
-		    //室
-		    Extension extension_room = new Extension();
-		    StringType string_room = new StringType(room);
-		    extension_room.setUrl(fhirdata.roomUrl);
-		    extension_room.setValue(string_room);	
-		    extens.add(extension_room);
+	    
+		    extens.add(setExtension(section, fhirdata.sectionUrl));
+		    extens.add(setExtension(number, fhirdata.numberUrl));
+		    extens.add(setExtension(village, fhirdata.villUrl));
+		    extens.add(setExtension(neighborhood, fhirdata.neighUrl));
+		    extens.add(setExtension(lane, fhirdata.laneUrl));
+		    extens.add(setExtension(alley, fhirdata.alleyUrl));
+		    extens.add(setExtension(floor, fhirdata.floorUrl));
+		    extens.add(setExtension(room, fhirdata.roomUrl));
 	      
 	        return extens;
+	  }
+	  
+	  private static Extension setExtension(String text, String url){ 
+		  	Extension extension = new Extension();
+		    StringType stringtype = new StringType(text);
+		    extension.setUrl(url);
+		    extension.setValue(stringtype);
+		    
+	        return extension;
 	  }
 	  
 	  
