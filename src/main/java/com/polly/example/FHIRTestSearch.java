@@ -22,7 +22,7 @@ public class FHIRTestSearch {
 				from("timer:mytimer?repeatCount=1")
 				.to("fhir://search/searchByUrl?"
 						+ "serverUrl=https%3A%2F%2Fhapi.fhir.org%2FbaseR4%2F&"
-						+ "url=https%3A%2F%2Fhapi.fhir.org%2FbaseR4%2FPatient%3Ffamily%3DSenn&"
+						+ "url=https%3A%2F%2Fhapi.fhir.org%2FbaseR4%2FPatient%3Fidentifier%3DH123450789&"
 						+ "prettyPrint=true&"
 						+ "encoding=JSON")
 				.process(new Processor() {
