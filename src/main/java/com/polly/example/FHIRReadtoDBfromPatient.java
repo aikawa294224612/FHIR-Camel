@@ -2,6 +2,7 @@ package com.polly.example;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -36,6 +37,9 @@ public class FHIRReadtoDBfromPatient {
 	
 	static FHIRData fhirdata = new FHIRData();
 	static CodeData codedata = new CodeData();
+	
+	static Functions func = new Functions();
+
 
 	public static void main(String[] args) throws Exception{
 	
@@ -43,7 +47,7 @@ public class FHIRReadtoDBfromPatient {
 	    		+ "encrypt=true;databaseName=" + dbname + ";"
 	    		+ "trustServerCertificate=true";
 		
-	    DataSource dataSource = setupDataSource(dbURL);
+	    DataSource dataSource = func.setupDataSource(dbURL);
 	    DefaultRegistry reg = new DefaultRegistry();
 	    reg.bind("myDataSource", dataSource);
 	        
@@ -53,10 +57,12 @@ public class FHIRReadtoDBfromPatient {
 			
 			public void configure(){
 				
+				String id = "C102938475";
+				
 				from("timer:mytimer?repeatCount=1")
 				.to("fhir://search/searchByUrl?"
 						+ "serverUrl=https%3A%2F%2Fhapi.fhir.org%2FbaseR4%2F&"
-						+ "url=https%3A%2F%2Fhapi.fhir.org%2FbaseR4%2FPatient%3Fidentifier%3DH123450789&"
+						+ "url=https%3A%2F%2Fhapi.fhir.org%2FbaseR4%2FPatient%3Fidentifier%3D"+ id +"&"
 						+ "prettyPrint=true&"
 						+ "encoding=JSON")
 				.process(new Processor() {
@@ -73,37 +79,33 @@ public class FHIRReadtoDBfromPatient {
 						
 						Patient p = (Patient) body.getEntry().get(0).getResource();												
 						
-						String uid = getID(p.getIdentifier(), codedata.idenCode) == "" ? "Unknow" : getID(p.getIdentifier(), codedata.idenCode);  //身分證
-						String pid = getID(p.getIdentifier(), codedata.recordCode)  == "" ? "Unknow" : getID(p.getIdentifier(), codedata.recordCode);  //病歷號
-						String name = p.getName().get(0).getText() == "" ? "Unknow" : p.getName().get(0).getText();  //姓名
-						String gender = getGender(p.getGender());  //性別
+						String uid = p.hasIdentifier() ? func.getID(p.getIdentifier(), codedata.idenCode) : "Unknow";  //身分證
+						String pid = p.hasIdentifier() ? func.getID(p.getIdentifier(), codedata.recordCode) : "Unknow";  //病歷號
+						String name = p.hasName() ? p.getName().get(0).getText() : "Unknow";  //姓名
+						String gender = p.hasGender() ? func.getGender(p.getGender()): "0";  //性別
+						String strDate = p.hasBirthDate() ? func.getBirth(p.getBirthDate()) : "Unknown";  //出生年月日					
 						
-						//出生年月日
-						DateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd");  
-						String strDate = dateFormat.format(p.getBirthDate());  
+						String address = p.hasAddress() ? p.getAddress().get(0).getText() : null;	//地址
+						String phone = p.hasTelecom() ? func.getPhone(p.getTelecom(), ContactPoint.ContactPointUse.MOBILE) : null; //手機
+						String marrage = p.hasMaritalStatus() ? func.getMarrage(p.getMaritalStatus()) : null;  //婚姻狀況
 						
-						String address = p.getAddress().get(0).getText() == "" ? "Unknow" : p.getAddress().get(0).getText();	//地址
-						String phone = getPhone(p.getTelecom(), ContactPoint.ContactPointUse.MOBILE) == "" ? "Unknow" : getPhone(p.getTelecom(), ContactPoint.ContactPointUse.MOBILE); //手機
-						String marrage = getMarrage(p.getMaritalStatus());  //婚姻狀況
-						
-						String contactName = p.getContact().size() > 0 ? p.getContact().get(0).getName().getText() : "Unknown";
-						String contactAddress = p.getContact().size() > 0 ? p.getContact().get(0).getAddress().getText() : "Unknown";
-						String contactPhone = p.getContact().size() > 0 ? getPhone(p.getContact().get(0).getTelecom(), ContactPoint.ContactPointUse.MOBILE) : "Unknown";
-						String contactRelationship = p.getContact().size() > 0 ? getContactRelation(p.getContact().get(0).getRelationship().get(0)) : "Unknown";						
-						
-						String sql = "INSERT INTO [dbo].[Patient]([Id],[Pid],[Uid],[Name],[Sex],[Birthday],"
+						String contactName = p.hasContact() ? p.getContact().get(0).getName().getText() : null;
+						String contactAddress = p.hasContact() ? p.getContact().get(0).getAddress().getText() : null;
+						String contactPhone = p.hasContact() ? func.getContectPhone(p.getContact().get(0), ContactPoint.ContactPointUse.MOBILE) : null;
+						String contactRelationship = p.hasContact() ? func.getContactRelation(p.getContact().get(0)) : null;						
+						String fid = p.getIdElement().getIdPart();
+								
+						String sql = "INSERT INTO "+ table +"([Id],[Pid],[Uid],[Name],[Sex],[Birthday],"
 								+ "[Address],[Tel],[Marriage],[EmergencyContactTitle],[EmergencyContactName],"
-								+ "[EmergencyContactAddress],[EmergencyContactTel],[RecordCreateTime],[RecordTransformTime])"
+								+ "[EmergencyContactAddress],[EmergencyContactTel],[RecordCreateTime],[RecordTransformTime],[Fid])"
 								+ "VALUES('"+ pid +"','"+ pid +"','"+ uid +"','"+ name +"','"+ gender +"','"+ strDate +"',"
 								+ "'"+ address +"','"+ phone +"','"+ marrage +"','"+ contactRelationship +"','"+ contactName +"','"+ contactAddress +"',"
-								+ "'"+ contactPhone +"',GETDATE(),GETDATE())";
-						
-						System.out.println(sql);
+								+ "'"+ contactPhone +"',GETDATE(),GETDATE(),'"+ fid +"')";
 						
 						exchange.getIn().setBody(sql);						
 					}				
 				})
-				//.to("jdbc:myDataSource")
+				.to("jdbc:myDataSource")
 				.process(new Processor() {
 					public void process(Exchange exchange) throws Exception {						
 				        
@@ -121,78 +123,5 @@ public class FHIRReadtoDBfromPatient {
 		context.stop();
 		
 	}
-	
-	private static DataSource setupDataSource(String connectURI) {
-	    BasicDataSource ds = new BasicDataSource();
-	    ds.setDriverClassName(className);
-	    ds.setUsername(username);
-	    ds.setPassword(pw);
-	    ds.setUrl(connectURI);
-	    return ds;
-	  }
-	
-	private static String getID(List<Identifier> idens, String code) {
-		String iden = "";
-		for(int i=0; i<idens.size(); i++) {
-			if(idens.get(i).getType().getCoding().get(0).getCode().equals(code)) {
-				iden = idens.get(i).getValue();
-				break;
-			}
-		}
-		
-		return iden;
-
-	  }
-	
-	private static String getGender(AdministrativeGender administrativeGender) {
-		if(administrativeGender == AdministrativeGender.FEMALE) {
-			return "2";
-		}else if(administrativeGender == AdministrativeGender.MALE)  {
-			return "1";
-		}else {
-			return "0";
-		}
-
-
-	  }
-	
-	private static String getPhone(List<ContactPoint> contacts, ContactPoint.ContactPointUse use) {
-		String value = "";
-		for(int i=0; i<contacts.size(); i++) {
-			if(contacts.get(i).getUse() == use) {
-				value = contacts.get(i).getValue();
-				break;
-			}
-		}
-		
-		return value;
-
-	  }
-	
-	private static String getMarrage(CodeableConcept code) {
-		if(code.getCoding().get(0).getCode().equals(codedata.unmarried)) {
-			return "未婚";
-		}else if(code.getCoding().get(0).getCode().equals(codedata.married)){
-			return "已婚";
-		}else if(code.getCoding().get(0).getCode().equals(codedata.divorce)){
-			return "離婚";
-		}else {
-			return "Unknown";
-		}
-
-	  }
-	
-	private static String getContactRelation(CodeableConcept code) {
-		if(code.getCoding().get(0).getCode().equals(codedata.father)) {
-			return "父";
-		}else if(code.getCoding().get(0).getCode().equals(codedata.mother)){
-			return "母";
-		}else if(code.getCoding().get(0).getCode().equals(codedata.sprouse)){
-			return "配偶";
-		}else {
-			return "Unknown";
-		}
-
-	  }
 
 }
