@@ -1,0 +1,6 @@
+{
+  "resourceType": "Observation",
+  "subject": {
+    "reference": "https://hapi.fhir.org/baseR4/Patient?identifier=H123450789"
+  }
+}
