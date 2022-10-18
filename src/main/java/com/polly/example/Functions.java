@@ -1,5 +1,11 @@
 package com.polly.example;
 
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -11,58 +17,55 @@ import javax.sql.DataSource;
 
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.hl7.fhir.r4.model.Address;
+import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.ContactPoint;
+import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
+import org.hl7.fhir.r4.model.Bundle.BundleEntryRequestComponent;
+import org.hl7.fhir.r4.model.Bundle.HTTPVerb;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.Identifier.IdentifierUse;
+import org.hl7.fhir.r4.model.Observation;
+import org.hl7.fhir.r4.model.Observation.ObservationComponentComponent;
+import org.hl7.fhir.r4.model.Observation.ObservationStatus;
 import org.hl7.fhir.r4.model.Patient.ContactComponent;
+import org.hl7.fhir.r4.model.Quantity;
+import org.hl7.fhir.r4.model.Reference;
 
 public class Functions {
 	
 	static PrivateData privateData = new PrivateData();
-	static String username = privateData.username;
-	static String pw = privateData.pw;
-	static String className = privateData.className;
-	
 	static FHIRData fhirdata = new FHIRData();
 	static CodeData codedata = new CodeData();
 	
-	// 資料庫連接資料
+	/*資料庫連接資料*/
 	public DataSource setupDataSource(String connectURI) {
 	    BasicDataSource ds = new BasicDataSource();
-	    ds.setDriverClassName(className);
-	    ds.setUsername(username);
-	    ds.setPassword(pw);
+	    ds.setDriverClassName(privateData.className);
+	    ds.setUsername(privateData.username);
+	    ds.setPassword(privateData.pw);
 	    ds.setUrl(connectURI);
 	    return ds;
 	  }
 	
-	// set Identifier
+	/* 設置identifier */
 	public Identifier setIdentifier(IdentifierUse use, String codesystem, String code, String system, String uid) {
 	  	Identifier iden =new Identifier();
         iden.setUse(use);
-        
-        Coding idencode = new Coding();
-        idencode.setSystem(codesystem);
-        idencode.setCode(code);
-        List<Coding> idencodings = new ArrayList<Coding>();
-        idencodings.add(idencode);
-        CodeableConcept iden_concept = new CodeableConcept();
-        iden_concept.setCoding(idencodings);
-        iden.setType(iden_concept);
-        
+        iden.setType(setCodeableConcept(setCoding(codesystem, code)));        
         iden.setSystem(system);	
         iden.setValue(uid);	
         return iden;
     }
   
-	//set Human Name
+	/* 設置姓名 */
 	public List<HumanName> setNames(String name){
 	  HumanName humanname = new HumanName();
       humanname.setText(name);
@@ -71,7 +74,7 @@ public class Functions {
 	  return names;
   }
   
-	  
+	/* 設置性別 */  
 	public AdministrativeGender setGender(String gender){
 		  if(gender.equals(codedata.female)) {
 	        	return AdministrativeGender.FEMALE;
@@ -82,12 +85,14 @@ public class Functions {
 	        }	
 	  }
   
+	/* 設置出生 */
 	public Date setBirthdate(String birth) throws ParseException{
 	  Date birthdate = new SimpleDateFormat("yyyy-MM-dd").parse(birth);
 	  return birthdate;
 		
   }
   
+	/* 設置地址 */
 	public List<Address> setAddresses(String address){
 	  Address addr = new Address();
 	  addr.setText(address);
@@ -97,6 +102,7 @@ public class Functions {
 	  return addrs;
   }
   
+	/* 設置聯絡方式(手機) */
 	public ContactPoint setTel(String tel){
 		ContactPoint con =new ContactPoint();
 		con.setUse(ContactPoint.ContactPointUse.MOBILE);	        
@@ -105,6 +111,7 @@ public class Functions {
 		return con;
   }
   
+	/* 設置聯絡方式(聯絡人) */
 	public ContactComponent setContact(String name, String address, String tel){
 	    //聯絡人姓名
 	  	Patient.ContactComponent contact = new Patient.ContactComponent();
@@ -149,7 +156,69 @@ public class Functions {
 	    
         return extension;
   }
+	
+	public Coding setCoding(String system, String code){ 
+		Coding coding = new Coding();
+		coding.setSystem(system);
+		coding.setCode(code);
+	    
+        return coding;
+  }
+	
+	public Coding setCoding(String system, String code, String display){ 
+		Coding coding = new Coding();
+		coding.setSystem(system);
+		coding.setCode(code);
+		coding.setDisplay(display);
+	    
+        return coding;
+  }
+	
+	public CodeableConcept setCodeableConcept(Coding coding){ 
+		CodeableConcept concept = new CodeableConcept();
+		List<Coding> codings = new ArrayList<Coding>();
+        codings.add(coding); 
+        concept.setCoding(codings);
+	    
+        return concept;
+  }
+	
+	public List<CodeableConcept> setCodeableConcepts(CodeableConcept cc){ 
+	    List<CodeableConcept> cons = new ArrayList<CodeableConcept>();    
+	    cons.add(cc);    
+        return cons;
+  }
 
+	public Reference setReference(String url){ 
+	    Reference r = new Reference();
+	    r.setReference(url);
+	    return r;
+  }
+	
+	public Quantity setQuantity(float value, String unit, String system, String code){ 
+		Quantity q = new Quantity();
+	    q.setValue(value);
+	    q.setUnit(unit);
+	    q.setSystem(system);
+	    q.setCode(code);	    
+	    return q;	    
+  }
+	
+	public ObservationComponentComponent setOCC(String system, String code, String display, 
+			float value, String unit, String u_system, String u_code) {
+		ObservationComponentComponent occ = new ObservationComponentComponent();
+		occ.setCode(setCodeableConcept(setCoding(system, code, display)));
+		occ.setValue(setQuantity(value,unit, u_system, u_code));
+		return occ;
+	}
+
+	
+	public BundleEntryRequestComponent setBundleEntryRequestComponent(String url){ 
+		BundleEntryRequestComponent berc = new BundleEntryRequestComponent();
+		berc.setMethod(HTTPVerb.POST);
+		berc.setUrl(url);
+	    return berc;	    
+  }
   
 	public Patient setPatient(String uid, String pid, String name, String gender, String birth,
 		  String address, String tel, String contact_name, String contact_address, String contact_tel) throws ParseException{
@@ -188,6 +257,99 @@ public class Functions {
       
         return patient;
   }
+	
+	public Observation setWeight(String pid, String fid, int weight, Date mdate) throws ParseException{
+	        Observation ob = new Observation();
+	        List<Identifier> idens = new ArrayList<Identifier>();
+	          
+	        // 病歷號
+	        idens.add(setIdentifier(IdentifierUse.OFFICIAL, 
+	        		fhirdata.idenUrl, 
+	        		codedata.recordCode,
+	        		fhirdata.tzuchiUrl,
+	        		pid));
+	            
+	        ob.setIdentifier(idens);
+	        ob.setStatus(ObservationStatus.PRELIMINARY);
+	        ob.setCategory(setCodeableConcepts(setCodeableConcept(setCoding(fhirdata.obCategoryUrl, 
+	        		codedata.vitalsign, codedata.vs_display))));
+	        ob.setCode(setCodeableConcept(setCoding(fhirdata.loincUrl, codedata.weight, 
+	        		codedata.weight_display)));
+	        ob.setSubject(setReference("Patient/" + fid));
+	        DateTimeType d = new DateTimeType(mdate);
+	        ob.setEffective(d);	        
+	        ob.setIssued(mdate);
+	        ob.setValue(setQuantity(weight, codedata.unit_weight, fhirdata.measureUrl, codedata.unit_weight));
+	      
+	        return ob;
+	  }
+	
+	public Observation setHeight(String pid, String fid, int height, Date mdate) throws Exception{
+        Observation ob = new Observation();
+        List<Identifier> idens = new ArrayList<Identifier>();
+          
+        // 病歷號
+        idens.add(setIdentifier(IdentifierUse.OFFICIAL, 
+        		fhirdata.idenUrl, 
+        		codedata.recordCode,
+        		fhirdata.tzuchiUrl,
+        		pid));
+            
+        ob.setIdentifier(idens);
+        ob.setStatus(ObservationStatus.PRELIMINARY);
+        ob.setCategory(setCodeableConcepts(setCodeableConcept(setCoding(fhirdata.obCategoryUrl, 
+        		codedata.vitalsign, codedata.vs_display))));
+        ob.setCode(setCodeableConcept(setCoding(fhirdata.loincUrl, codedata.height, 
+        		codedata.height_display)));
+        ob.setSubject(setReference("Patient/" + fid));
+        DateTimeType d = new DateTimeType(mdate);
+        ob.setEffective(d);	        
+        ob.setIssued(mdate);
+        ob.setValue(setQuantity(height, codedata.unit_height, fhirdata.measureUrl, codedata.unit_height));
+      
+        return ob;
+  }
+	
+	public Observation setPressure(String pid, String fid, int systolic, 
+			int diastolic, int heartrate, Date mdate) throws Exception{
+        Observation ob = new Observation();
+        List<Identifier> idens = new ArrayList<Identifier>();
+          
+        // 病歷號
+        idens.add(setIdentifier(IdentifierUse.OFFICIAL, 
+        		fhirdata.idenUrl, 
+        		codedata.recordCode,
+        		fhirdata.tzuchiUrl,
+        		pid));
+            
+        ob.setIdentifier(idens);
+        ob.setStatus(ObservationStatus.PRELIMINARY);
+        ob.setCategory(setCodeableConcepts(setCodeableConcept(setCoding(fhirdata.obCategoryUrl, 
+        		codedata.vitalsign, codedata.vs_display))));
+        ob.setCode(setCodeableConcept(setCoding(fhirdata.loincUrl, codedata.bp, 
+        		codedata.bp_display)));
+        ob.setSubject(setReference("Patient/" + fid));
+        DateTimeType d = new DateTimeType(mdate);
+        ob.setEffective(d);	        
+        ob.setIssued(mdate);
+        
+        List<ObservationComponentComponent> Occs = new ArrayList<ObservationComponentComponent>();
+        //收縮壓
+        Occs.add(setOCC(fhirdata.loincUrl, codedata.systolic, codedata.systolic_display, 
+        		systolic, codedata.unit_bp, fhirdata.measureUrl, codedata.code_bp));
+        //舒張壓
+        Occs.add(setOCC(fhirdata.loincUrl, codedata.diastolic, codedata.diastolic_display, 
+        		diastolic, codedata.unit_bp, fhirdata.measureUrl, codedata.code_bp));
+        
+        //心律
+        Occs.add(setOCC(fhirdata.loincUrl, codedata.hr, codedata.hr_display, 
+        		heartrate, codedata.unit_hr, fhirdata.measureUrl, codedata.unit_hr));
+        
+        ob.setComponent(Occs);
+      
+        return ob;
+  }
+	
 	
 	public String getID(List<Identifier> idens, String code) {
 		String iden = "";
@@ -279,5 +441,55 @@ public class Functions {
 		}			
 
 	  }
+	
+	public String getPatientFid(String Uid) throws Exception {
+		
+		Connection conn = null;
+		
+		String value = "";
+		 
+		Class.forName(privateData.className);
+        conn = DriverManager.getConnection(privateData.dbURL, privateData.username, privateData.pw);
+        if (conn != null) {
+            DatabaseMetaData dm = (DatabaseMetaData) conn.getMetaData();
+//            System.out.println("Driver name: " + dm.getDriverName());
+//            System.out.println("Driver version: " + dm.getDriverVersion());
+//            System.out.println("Product name: " + dm.getDatabaseProductName());
+//            System.out.println("Product version: " + dm.getDatabaseProductVersion());
+            
+            Statement selectStmt = conn.createStatement();
+            ResultSet rs = selectStmt
+              .executeQuery("SELECT [Fid] FROM Patient WHERE [Uid] = '"+ Uid +"'");
+            
+            while(rs.next())
+            {
+            	value =  rs.getString(1); 
+            }            
+        }
+        return value;
+	}
+	
+	public String getUpdateSql(String table, String column, Bundle result, List<String> IDlist){
+		
+		String updateSql_front = "UPDATE "+ table
+				+ " SET [Fid] "
+				+ "= CASE ["+column+"]";
+		
+		String updateSql_end = "WHERE ["+column+"] IN(";
+				
+		for(int i=0; i< result.getEntry().size(); i++) {
+			String location = result.getEntry().get(i).getResponse().getLocation();
+			String fhirId = location.split("/")[1];
+			
+			updateSql_front += " WHEN '"+ IDlist.get(i) +"' THEN '"+ fhirId + "'";
+			updateSql_end += "'"+ IDlist.get(i) + "',";
+
+		}						
+		
+		String sql = updateSql_front + " END " + updateSql_end.substring(0, updateSql_end.length()-1) + ")";
+		
+		return sql;				
+
+		}
 
 }

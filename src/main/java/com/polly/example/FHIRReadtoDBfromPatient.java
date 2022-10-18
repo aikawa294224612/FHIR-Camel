@@ -1,9 +1,5 @@
 package com.polly.example;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
 
 import javax.sql.DataSource;
 
@@ -13,39 +9,22 @@ import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.camel.support.DefaultRegistry;
-import org.apache.commons.dbcp2.BasicDataSource;
 import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.ContactPoint;
-import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Patient;
-import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 
 /* 實作FHIR搜尋，以family name作為搜尋參數 */
 public class FHIRReadtoDBfromPatient {
 	
 	static PrivateData privateData = new PrivateData();
-	static String serverName = privateData.serverName;
-	static String instanceName = privateData.instanceName;
-	static String port = privateData.port;
-	static String dbname = privateData.dbname;
-	static String username = privateData.username;
-	static String pw = privateData.pw;
-	static String table = privateData.table;
-	static String fhirserver = privateData.fhirserverurl;
-	static String className = privateData.className;
-	
 	static FHIRData fhirdata = new FHIRData();
-	static CodeData codedata = new CodeData();
-	
+	static CodeData codedata = new CodeData();	
 	static Functions func = new Functions();
 
 
 	public static void main(String[] args) throws Exception{
 	
-		String dbURL = "jdbc:sqlserver://"+ serverName +"\\"+ instanceName +":"+ port +";"
-	    		+ "encrypt=true;databaseName=" + dbname + ";"
-	    		+ "trustServerCertificate=true";
+		String dbURL = privateData.dbURL;
 		
 	    DataSource dataSource = func.setupDataSource(dbURL);
 	    DefaultRegistry reg = new DefaultRegistry();
@@ -95,7 +74,7 @@ public class FHIRReadtoDBfromPatient {
 						String contactRelationship = p.hasContact() ? func.getContactRelation(p.getContact().get(0)) : null;						
 						String fid = p.getIdElement().getIdPart();
 								
-						String sql = "INSERT INTO "+ table +"([Id],[Pid],[Uid],[Name],[Sex],[Birthday],"
+						String sql = "INSERT INTO "+ privateData.patientTable +"([Id],[Pid],[Uid],[Name],[Sex],[Birthday],"
 								+ "[Address],[Tel],[Marriage],[EmergencyContactTitle],[EmergencyContactName],"
 								+ "[EmergencyContactAddress],[EmergencyContactTel],[RecordCreateTime],[RecordTransformTime],[Fid])"
 								+ "VALUES('"+ pid +"','"+ pid +"','"+ uid +"','"+ name +"','"+ gender +"','"+ strDate +"',"

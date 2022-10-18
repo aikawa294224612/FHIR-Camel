@@ -2,10 +2,8 @@ package com.polly.example;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 
 public class DBTest {
@@ -32,14 +30,11 @@ public class DBTest {
                 
                 Statement selectStmt = conn.createStatement();
                 ResultSet rs = selectStmt
-                  .executeQuery("SELECT * FROM Inform");
+                  .executeQuery("SELECT [Fid] FROM Patient WHERE [Uid] = 'A229559322'");
                 
                 while(rs.next())
                 {
                   System.out.println(rs.getString(1));  //First Column
-                  System.out.println(rs.getString(2));  //Second Column
-                  System.out.println(rs.getString(3));  //Third Column
-                  System.out.println(rs.getString(4));  //Fourth Column
                 }
             }
  

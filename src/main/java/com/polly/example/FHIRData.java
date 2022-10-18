@@ -15,5 +15,10 @@ public class FHIRData {
 	String alleyUrl = "https://twcore.mohw.gov.tw/fhir/StructureDefinition/tw-alley";
 	String floorUrl = "https://twcore.mohw.gov.tw/fhir/StructureDefinition/tw-floor";
 	String roomUrl = "https://twcore.mohw.gov.tw/fhir/StructureDefinition/tw-room";
+	
+	String obCategoryUrl = "http://terminology.hl7.org/CodeSystem/observation-category";
+	String loincUrl = "http://loinc.org";
+	
+	String measureUrl = "http://unitsofmeasure.org";
 
 }
